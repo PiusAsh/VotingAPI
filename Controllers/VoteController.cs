@@ -51,18 +51,28 @@ namespace VotingAPI.Controllers
             }
             else
             {
-                var vote = new Candidates()
-                {
-                    TotalVotes = counter.TotalVotes + 1
-                };
+                var candidate = await _DBContext.Candidates.Where(p => p.Id == counter.Id).FirstOrDefaultAsync();
                 
-                await _DBContext.Candidates.AddAsync(counter);
-                await _DBContext.SaveChangesAsync();
-                return Ok(new
+                if(candidate == null)
                 {
-                    Message = "Voted Successfully",
-                    counter
-                });
+                    return Ok(new
+                    {
+                        Message = "Candidate does not exist",
+                        code = -1
+                    });
+                }
+                else
+                {
+                    candidate.TotalVotes = candidate.TotalVotes + 1;
+                    _DBContext.Candidates.Update(candidate);
+                    await _DBContext.SaveChangesAsync();
+                    return Ok(new
+                    {
+                        Message = "Voted Successfully",
+                        counter,
+                        code = 0
+                    });
+                }
             }
         }
 
